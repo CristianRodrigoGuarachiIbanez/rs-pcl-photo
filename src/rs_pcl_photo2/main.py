@@ -31,5 +31,6 @@ if __name__ == "__main__":
     dimg = image_to_array_2d(cv.imread(fname, cv.IMREAD_UNCHANGED))
     print(dimg.ndim)
     # dark_image_grey_fourier = dark_image_grey_fourier(dimg)
-    fourier_iterator(dimg, [0.5,3,30])
+    fourier_iterator(dimg, [-10, 0.5, 0, 10])
+    mean, b = detect_frequencies_fft(image=dimg, thresh=20, vis=True)
     # plt.show()
