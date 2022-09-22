@@ -6,7 +6,9 @@ import matplotlib.pyplot as plt
 from scipy import fftpack
 from rs_pcl_photo2.td_fft.load_img import *
 from rs_pcl_photo2.td_fft.fourier_mask import *
-
+from rs_pcl_photo2.td_fft.image_reconstruction import *
+from rs_pcl_photo2.cython_module.image_reconstruction import Image_Reconstruction
+import sys
 def plot_spectrum(im_fft):
     from matplotlib.colors import LogNorm
     # A logarithmic colormap
@@ -29,8 +31,58 @@ if __name__ == "__main__":
     mkVisual = partial(mkVisual, colormap=cv.COLORMAP_CIVIDIS)
     fname = sys.argv[1] if len(sys.argv) > 1 else "depth_images/rs-photo-00-depth.png"
     dimg = image_to_array_2d(cv.imread(fname, cv.IMREAD_UNCHANGED))
-    print(dimg.ndim)
+    #print(dimg.ndim)
     # dark_image_grey_fourier = dark_image_grey_fourier(dimg)
-    fourier_iterator(dimg, [-10, 0.5, 0, 10])
-    mean, b = detect_frequencies_fft(image=dimg, thresh=20, vis=True)
-    # plt.show()
+    #fourier_iterator(dimg, [-10, 0.5, 0, 10])
+    #mean, b = detect_frequencies_fft(image=dimg, thresh=20, vis=True)
+
+    # Array dimensions (array is square) and centre pixel
+    # Use smallest of the dimensions and ensure it's odd
+    array_size = min(dimg.shape) - 1 + min(dimg.shape) % 2
+
+    # Crop image so it's a square image
+    centre = int((array_size - 1) / 2)
+
+    # Array dimensions (array is square) and centre pixel
+    coords_left_half = square_image(dimg, array_size, centre)
+    ft = calculate_2dft(dimg)
+    # Reconstruct image
+
+    IR = Image_Reconstruction(dimg, np.asarray(coords_left_half, dtype='int32'), ft, centre)
+    com = IR.individualGrating()
+    print(com.shape)
+    plt.savefig("./output")
+    """fig = plt.figure()
+
+    # Step 1
+    # Set up empty arrays for final image and individual gratings
+    rec_image = np.zeros(dimg.shape)
+    individual_grating = np.zeros(dimg.shape, dtype="complex")
+
+    idx = 0
+    # Step 2
+    for coords in coords_left_half:
+        # Central column: only include if points in top half of the central column
+        if not (coords[1] == centre and coords[0] > centre):
+            idx += 1
+            symm_coords = find_symmetric_coordinates(coords, centre)
+
+            # Step 3
+            # Copy values from Fourier transform into individual_grating for the pair of points in
+            # current iteration
+            individual_grating[coords] = ft[coords]
+            individual_grating[symm_coords] = ft[symm_coords]
+            # Step 4
+            # Calculate inverse Fourier transform to give the reconstructed grating. Add this reconstructed
+            # grating to the reconstructed image
+            rec_grating = calculate_2dift(individual_grating)
+            print("symm -> ", type(rec_grating), rec_grating.dtype, rec_grating.shape)
+            exit()
+            rec_image += rec_grating
+            # Clear individual_grating array, ready for next iteration
+            individual_grating[coords] = 0
+            individual_grating[symm_coords] = 0
+            print(" ind -> ",individual_grating[coords], "index -> ", idx)
+            # display_plots(rec_grating, rec_image, idx)
+    # fig.savefig("./figure.png")
+    # plt.show()"""

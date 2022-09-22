@@ -1,16 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from skimage.io import imread, imshow
 from skimage.color import rgb2hsv, rgb2gray, rgb2yuv
-from skimage import color, exposure, transform
-from skimage.exposure import equalize_hist
 
 def fourier_masker_ver(image, i):
     f_size = 15
     if(image.ndim==3):
         image = rgb2gray(image)
+        #si = square_image(image)
+        #print("coordinates left half ->", si)
     else:
         image = image[:]
+        #si = square_image(image)
+        #print("coordinates left half ->", si)
 
     dark_image_grey_fourier = np.fft.fftshift(np.fft.fft2(image))
     dark_image_grey_fourier[:225, 235:240] = i
@@ -32,8 +33,11 @@ def fourier_masker_hor(image, i):
     else:
         image = image[:]
     dark_image_grey_fourier = np.fft.fftshift(np.fft.fft2(image))
+    print("shape ->", dark_image_grey_fourier.shape)
     dark_image_grey_fourier[235:240, :230] = i
     dark_image_grey_fourier[235:240,-230:] = i
+    print("dark image ->", dark_image_grey_fourier[235:240,-230:].shape)
+
     fig, ax = plt.subplots(1,3,figsize=(15,15))
     ax[0].imshow(np.log(abs(dark_image_grey_fourier)), cmap='gray')
     ax[0].set_title('Masked Fourier', fontsize = f_size)
