@@ -4,7 +4,4 @@ src/rs_pcl_photo2/lib/__pycache__/
 src/rs_pcl_photo2/td_fft/__pycache__/
 tests/output.png
 .gitignore
-
-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
-for workflow
-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
+.github
