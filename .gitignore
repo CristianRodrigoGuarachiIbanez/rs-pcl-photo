@@ -5,3 +5,4 @@ src/rs_pcl_photo2/td_fft/__pycache__/
 tests/output.png
 .gitignore
 .github
+.tox
