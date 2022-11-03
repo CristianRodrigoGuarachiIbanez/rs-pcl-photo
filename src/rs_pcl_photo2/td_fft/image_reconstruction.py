@@ -1,9 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from skimage.io import imread, imshow
-from skimage.color import rgb2hsv, rgb2gray, rgb2yuv
-from skimage import color, exposure, transform
-from skimage.exposure import equalize_hist
 
 def calculate_2dft(input):
     ft = np.fft.ifftshift(input)

@@ -1,0 +1,16 @@
+LICENSE
+pyproject.toml
+setup.cfg
+setup.py
+src/rs_pcl_photo2/__init__.py
+src/rs_pcl_photo2/depth_photo.py
+src/rs_pcl_photo2/filter.py
+src/rs_pcl_photo2/main.py
+src/rs_pcl_photo2/mk_normals.py
+src/rs_pcl_photo2/task.py
+src/rs_pcl_photo2.egg-info/PKG-INFO
+src/rs_pcl_photo2.egg-info/SOURCES.txt
+src/rs_pcl_photo2.egg-info/dependency_links.txt
+src/rs_pcl_photo2.egg-info/not-zip-safe
+src/rs_pcl_photo2.egg-info/requires.txt
+src/rs_pcl_photo2.egg-info/top_level.txt

@@ -1,19 +1,21 @@
-from tarfile import FIFOTYPE
+
 from rs_pcl_photo2.lib.depth_image import image_to_array_2d, calc_normals_from_depth
-import numpy as np
-import cv2 as cv
-import matplotlib.pyplot as plt
-from scipy import fftpack
 from rs_pcl_photo2.td_fft.load_img import *
 from rs_pcl_photo2.td_fft.fourier_mask import *
 from rs_pcl_photo2.td_fft.image_reconstruction import *
 from rs_pcl_photo2.cython_module.image_reconstruction import Image_Reconstruction
-import sys
+import matplotlib.pyplot as plt
+import numpy as np
+import cv2 as cv
+import pytest
+
+
 def plot_spectrum(im_fft):
     from matplotlib.colors import LogNorm
     # A logarithmic colormap
     plt.imshow(np.abs(im_fft), norm=LogNorm(vmin=5))
     plt.colorbar()
+
 
 def fourier_iterator(image, value_list):
     for i in value_list:
@@ -23,6 +25,27 @@ def fourier_iterator(image, value_list):
         plot1.savefig("fft_vertical_image" + str(i) + ".png" )
         plot2.savefig("fft_horizontal_image" + str(i) + ".png" )
 
+
+@pytest.mark.parametrize("fname", [("depth_images/rs-photo-00-depth.png")])
+def test_rs_pcl_photo(fname):
+
+    dimg = image_to_array_2d(cv.imread(fname, cv.IMREAD_UNCHANGED))
+    array_size = min(dimg.shape) - 1 + min(dimg.shape) % 2
+
+    # Crop image so it's a square image
+    centre = int((array_size - 1) / 2)
+
+    # Array dimensions (array is square) and centre pixel
+    coords_left_half = square_image(dimg, array_size, centre)
+    ft = calculate_2dft(dimg)
+    # Reconstruct image
+
+    IR = Image_Reconstruction(dimg, np.asarray(coords_left_half, dtype='int32'), ft, centre)
+    com = IR.individualGrating()
+    print(com.shape)
+    plt.savefig("./output")
+
+
 if __name__ == "__main__":
     from rs_pcl_photo2.lib.util import mkVisual
     import sys
@@ -31,10 +54,6 @@ if __name__ == "__main__":
     mkVisual = partial(mkVisual, colormap=cv.COLORMAP_CIVIDIS)
     fname = sys.argv[1] if len(sys.argv) > 1 else "depth_images/rs-photo-00-depth.png"
     dimg = image_to_array_2d(cv.imread(fname, cv.IMREAD_UNCHANGED))
-    #print(dimg.ndim)
-    # dark_image_grey_fourier = dark_image_grey_fourier(dimg)
-    #fourier_iterator(dimg, [-10, 0.5, 0, 10])
-    #mean, b = detect_frequencies_fft(image=dimg, thresh=20, vis=True)
 
     # Array dimensions (array is square) and centre pixel
     # Use smallest of the dimensions and ensure it's odd

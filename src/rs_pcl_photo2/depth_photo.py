@@ -1,14 +1,11 @@
 #!/bin/env python3
-
-
 import pyrealsense2 as rs
 import numpy as np
 import cv2 as cv
 
 from scipy.signal import convolve2d
 from lib import gltfgen
-from lib.depth_image import (image_to_array_2d, array_2d_to_image,
-        calc_normals_from_depth)
+from lib.depth_image import (image_to_array_2d, array_2d_to_image, calc_normals_from_depth)
 from lib.util import mkVisual
 
 
@@ -34,33 +31,37 @@ align = rs.align(rs.stream.color)
 hf_flt = rs.hole_filling_filter(1)
 dec_flt = rs.decimation_filter(2.0)
 
-_array_info = lambda a: f"{a.shape}, {a.dtype}, min: {a.min()}, max: {a.max()}"
+# _array_info = lambda a: f"{a.shape}, {a.dtype}, min: {a.min()}, max: {a.max()}"
+
+
+def _array_info(a):
+    return f"{a.shape}, {a.dtype}, min: {a.min()}, max: {a.max()}"
 
 
 def record_normals(name, dimg):
     ns = calc_normals_from_depth(dimg)
     cv.imwrite(f"{name}-normals.png", (ns*255).astype("uint8"))
 
+
 def record_pcl(name, dimg, cimg, intrinsics=None):
     x, y, z = (a.flatten() for a in dimg_to_pcl(dimg, intrinsics))
     b, g, r = (a.flatten() for a in np.dsplit(cimg, 3))
     a = np.full(b.shape, 255, 'uint8')
 
-    points = np.stack((x,y,z)).T
-    colors = np.stack((r,g,b,a)).T
-
+    points = np.stack((x, y, z)).T
+    colors = np.stack((r, g, b, a)).T
 
     if intrinsics is None:
         cam = gltfgen.mkOrthographicCamera(zfar=100)
     else:
         aspectRatio = intrinsics.width / intrinsics.height
         yfov = 2 * np.arctan2(intrinsics.height, intrinsics.fy)
-        cam = gltfgen.mkPerspectiveCamera(aspectRatio=aspectRatio, yfov=yfov,
-                znear=0.01, zfar=100)
+        cam = gltfgen.mkPerspectiveCamera(aspectRatio=aspectRatio, yfov=yfov, znear=0.01, zfar=100)
 
     gltfgen.create_gltf_pcl(points, colors, name)
 
     print(f'recorded {name}')
+
 
 def record_photos(name, dimg, cimg, dintr):
     print(f"cimg: " + _array_info(cimg))
@@ -73,6 +74,7 @@ def record_photos(name, dimg, cimg, dintr):
     print(f"_img: " + _array_info(_img))
     cv.imwrite(f"{name}-depth-orig.png", mkVisual((dimg)))
     cv.imwrite(f"{name}-depth-reloaded.png", mkVisual(image_to_array_2d(_img)))
+
 
 def dimg_to_pcl(dimg, intrinsics=None):
     h, w = dimg.shape
@@ -92,6 +94,7 @@ def dimg_to_pcl(dimg, intrinsics=None):
         zs = dimg
     return xs, ys, zs
 
+
 def average_dimg(dimgs):
     res = np.dstack(dimgs)
     valid_count = np.sum((res > 0) * 1.0, axis=2)
@@ -101,6 +104,7 @@ def average_dimg(dimgs):
     np.putmask(res, valid_count < 1, 0)
     return res, valid_count
 
+
 def convolve2d_all_zeros(img, kernel, lim=float('inf')):
     res = img
     i = 0
@@ -109,6 +113,7 @@ def convolve2d_all_zeros(img, kernel, lim=float('inf')):
         i += 1
         print(i)
     return res
+
 
 def remove_black(dimg):
     kernel = np.array([[.3, .3, .3],
@@ -121,6 +126,7 @@ def remove_black(dimg):
         res.append(convolve2d_all_zeros(dimg, kernel, 20))
 
     return np.max(res, axis=0)
+
 
 def run():
     rec_cnt = 0
@@ -177,16 +183,19 @@ def run():
 _get_intrinsics = lambda frame: \
     frame.get_profile().as_video_stream_profile().get_intrinsics()
 
+
 def get_intrinsics():
     frms = pl.wait_for_frames()
     return [_get_intrinsics(f)\
             for f in (frms.get_depth_frame(), frms.get_color_frame())]
+
 
 def reset():
     global prof
     pl.stop()
     prof.get_device().hardware_reset()
     prof = pl.start(cfg)
+
 
 if __name__ == "__main__":
     # reset()
@@ -197,7 +206,6 @@ if __name__ == "__main__":
         except RuntimeError as e:
             print(e)
             reset()
-
 
     try:
         run()

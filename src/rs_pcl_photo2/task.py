@@ -1,6 +1,4 @@
 
-
-
 def solution(S):
     # write your code in Python 3.6
     if len(S) == 0:
@@ -18,9 +16,8 @@ def solution(S):
             pass
     return sum(results) // len(results)
 
+
 if (__name__ == "__main__"):
     A = "3,4,5,6,99"
     smallest = solution(A)
     print(smallest)
-
-  
