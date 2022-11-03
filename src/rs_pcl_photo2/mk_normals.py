@@ -27,7 +27,7 @@ class FFT:
 
     def set_filter(self, file=None):
         if file:
-            return  cv.imread(file, cv.IMREAD_GRAYSCALE)
+            return cv.imread(file, cv.IMREAD_GRAYSCALE)
         else:
             if self._image.size != 0:
                 return calculate_2dft(self._image)
@@ -36,6 +36,9 @@ class FFT:
 
     @staticmethod
     def _calculate_filter(dimg):
+        """
+        https://wsthub.medium.com/python-computer-vision-tutorials-image-fourier-transform-part-3-e65d10be4492
+        """
         return np.fft.fftshift(np.fft.fft2(dimg))
 
     @staticmethod
@@ -81,12 +84,12 @@ class FFT:
 
     def calculate_mask(self, file, filter, mask, method):
         self._filter = self.set_filter(file)
-        if not filter:
+        if type(filter) is not np.ndarray:
             if mask:
                 return self.calculate_fft(self._image, self._filter, method)
             else:
                 return self.calculate_fft(self._image, None, method)
-        elif filter.size != 0:
+        else:
             return self.calculate_fft(self._image, filter, method)
 
     def reconstruct_image(self, file=None, filter=None, mask=None, method=1, freq=0.499211):
@@ -140,9 +143,15 @@ if __name__ == "__main__":
     dimg = image_to_array_2d(cv.imread(fname, cv.IMREAD_UNCHANGED))
     print(dimg.shape)
     py_fft = FFT(fname)
-    new_fft = py_fft.reconstruct_image(file=None, filter=None, mask=None, method=1, freq=0.499211)
-    print(new_fft.shape)
+    #new_fft = py_fft.reconstruct_image(file=None, filter=None, mask=None, method=1, freq=0.499211)
+    #print(new_fft.shape)
     #show(np.log(abs(py_fft.getFilter())), "log", "filter.png")
     #show(abs(new_fft), "gray", "reco.png")
 
 
+    filter = py_fft.set_filter()
+    # show(1+np.abs(filter), "log", "filter2.png")
+    mask = gaussianLP(10, filter.shape)
+    lowPass = py_fft.reconstruct_image(None, mask, None, 1, freq=0.0)
+    # show(1+np.abs(lowPass), "log", "filter.png")
+    print(lowPass.shape, filter.shape, py_fft.getImage().shape)
