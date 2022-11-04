@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 
 from scipy import fftpack
 
-
 class FFT:
     def __init__(self, file=None):
         self._image = self._read_image(file)
