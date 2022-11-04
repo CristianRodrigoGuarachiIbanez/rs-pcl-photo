@@ -22,9 +22,7 @@ class TestFFT(unittest.TestCase):
         assert lowPass.shape == filter.shape and lowPass.shape == self._fft.getImage().shape
 
     def reconstruct_with_HPfilter(self):
-        filter = self._fft.set_filter()
-        mask = gaussianHP(100, filter.shape)
-        highPass = self._fft.reconstruct_image(None, mask, None, 1, 0.0)
+        f
         assert highPass.shape == filter.shape and highPass.shape == self._fft.getImage().shape
 
 
