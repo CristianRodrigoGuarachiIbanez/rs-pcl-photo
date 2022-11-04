@@ -14,11 +14,18 @@ class TestFFT(unittest.TestCase):
     def reconstruct_image(self):
         new_fft = self._fft.reconstruct_image(file=None, filter=None, mask=None, method=1, freq=0.499211)
         assert new_fft.shape == self._fft.shape
+
     def reconstruct_with_LPfilter(self):
         filter = self._fft.set_filter()
         mask = gaussianLP(100, filter.shape)
         lowPass = self._fft.reconstruct_image(None, mask, None, 1, 0.0)
         assert lowPass.shape == filter.shape and lowPass.shape == self._fft.getImage().shape
+
+    def reconstruct_with_HPfilter(self):
+        filter = self._fft.set_filter()
+        mask = gaussianHP(100, filter.shape)
+        highPass = self._fft.reconstruct_image(None, mask, None, 1, 0.0)
+        assert highPass.shape == filter.shape and highPass.shape == self._fft.getImage().shape
 
 
 if __name__ == "__main__":

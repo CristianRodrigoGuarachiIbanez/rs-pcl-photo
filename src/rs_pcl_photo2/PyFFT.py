@@ -1,7 +1,6 @@
 #!/bin/env python3
-from .lib.depth_image import image_to_array_2d, calc_normals_from_depth
-from .td_fft.image_reconstruction import calculate_2dft, calculate_2dift
-from .filter import gaussianHP, gaussianLP
+from lib.depth_image import image_to_array_2d, calc_normals_from_depth
+from td_fft.image_reconstruction import calculate_2dft, calculate_2dift
 import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,18 +18,21 @@ class FFT:
 
     def getFilter(self):
         return self._filter
+
     def _read_image(self, file=None):
         image = cv.imread(file, cv.IMREAD_UNCHANGED)
         if image.size == 0:
             return None
         return image_to_array_2d(image)
 
-    def set_filter(self, file=None):
+    def set_filter(self, file=None, method=1):
         if file:
             return cv.imread(file, cv.IMREAD_GRAYSCALE)
         else:
-            if self._image.size != 0:
+            if self._image.size != 0 and method == 1:
                 return calculate_2dft(self._image)
+            elif self._image.size != 0 and method == 2:
+                return self._calculate_filter(self._image)
             else:
                 raise Exception("No image was loaded!")
 
@@ -83,7 +85,7 @@ class FFT:
                 return calculate_2dft(image) * filter
 
     def calculate_mask(self, file, filter, mask, method):
-        self._filter = self.set_filter(file)
+        self._filter = self.set_filter(file, method)
         if type(filter) is not np.ndarray:
             if mask:
                 return self.calculate_fft(self._image, self._filter, method)
@@ -134,24 +136,5 @@ def plot_spectrum(im_fft):
 
 
 if __name__ == "__main__":
-    from lib.util import mkVisual
-    import sys
-    from functools import partial
+    pass
 
-    mkVisual = partial(mkVisual, colormap=cv.COLORMAP_CIVIDIS)
-    fname = sys.argv[1] if len(sys.argv) > 1 else "depth_images/rs-photo-01-depth.png"
-    dimg = image_to_array_2d(cv.imread(fname, cv.IMREAD_UNCHANGED))
-    print(dimg.shape)
-    py_fft = FFT(fname)
-    #new_fft = py_fft.reconstruct_image(file=None, filter=None, mask=None, method=1, freq=0.499211)
-    #print(new_fft.shape)
-    #show(np.log(abs(py_fft.getFilter())), "log", "filter.png")
-    #show(abs(new_fft), "gray", "reco.png")
-
-
-    filter = py_fft.set_filter()
-    # show(1+np.abs(filter), "log", "filter2.png")
-    mask = gaussianLP(10, filter.shape)
-    lowPass = py_fft.reconstruct_image(None, mask, None, 1, freq=0.0)
-    # show(1+np.abs(lowPass), "log", "filter.png")
-    print(lowPass.shape, filter.shape, py_fft.getImage().shape)
